@@ -1,44 +1,38 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>if(localStorage.getItem("jastip_theme")==="dark"||(!localStorage.getItem("jastip_theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark");</script>
+    <script>
+      // Supabase recovery links may initially return to the configured Site URL.
+      // Forward recovery callbacks before the normal login redirect can run.
+      if (window.location.hash.includes("type=recovery")) {
+        window.location.replace("reset-password.html" + window.location.hash);
+      }
+    </script>
     <title>Login - JastipPYTHA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body class="login-page">
     <div class="login-card">
       <div class="brand brand-center">
         <div class="brand-mark">J</div>
-        <div>
-          <b>Jastip<span>PYTHA</span></b
-          ><small>Management System</small>
-        </div>
+        <div><b>Jastip<span>PYTHA</span></b><small>Management System</small></div>
       </div>
       <h1>Masuk ke Dashboard</h1>
       <p class="muted">Masuk menggunakan email dan password akun Anda.</p>
       <form id="loginForm" class="form-stack">
-        <label
-          >Email<input id="email" type="email" required autocomplete="email" placeholder="nama@email.com" /></label>
-        <label
-          >Password<input
-            id="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            
-        /></label>
+        <label>Email<input id="email" type="email" required autocomplete="email" placeholder="nama@email.com" /></label>
+        <label>Password<input id="password" type="password" required autocomplete="current-password" /></label>
         <button class="btn btn-primary btn-block" type="submit">Masuk</button>
       </form>
+      <div class="demo-hint"><a href="#" id="forgotPasswordLink" style="color:#06b6d4;font-weight:600;">Lupa password?</a></div>
       <div class="demo-hint">Belum punya akun? <a href="signup.html" style="color:#06b6d4;font-weight:600;">Daftar di sini</a></div>
-      <div id="loginError" class="error-text"></div>
+      <div id="loginError" class="error-text" role="status" aria-live="polite"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
