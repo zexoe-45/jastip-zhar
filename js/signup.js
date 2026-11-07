@@ -1,21 +1,40 @@
-document.getElementById("signupForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const fullname = document.getElementById("fullname").value.trim(),
-    email = document.getElementById("email").value.trim(),
-    username = document.getElementById("username").value.trim(),
-    password = document.getElementById("password").value;
-  
+document.getElementById("signupForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const errorBox = document.getElementById("signupError");
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  errorBox.textContent = "";
+  button.disabled = true;
+  button.textContent = "Memproses...";
+
+  const fullName = document.getElementById("fullname").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
   if (password.length < 6) {
-    document.getElementById("signupError").textContent =
-      "Password minimal 6 karakter.";
+    errorBox.textContent = "Password minimal 6 karakter.";
+    button.disabled = false;
+    button.textContent = "Daftar Sekarang";
     return;
   }
-  
-  // Demo: Just redirect to login after successful signup
-  alert("Akun berhasil dibuat! Silakan login dengan username: " + username);
-  location.href = "index.html";
-});
 
-if (localStorage.getItem(STORAGE_KEYS.session) === "admin") {
-  location.href = "dashboard.html";
-}
+  try {
+    const { data, error } = await window.supabaseClient.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (error) throw error;
+
+    if (data.session) {
+      location.href = "dashboard.html";
+    } else {
+      errorBox.textContent = "Pendaftaran berhasil. Silakan cek email untuk verifikasi, lalu masuk.";
+      errorBox.classList.remove("error-text");
+    }
+  } catch (error) {
+    errorBox.textContent = error.message || "Pendaftaran gagal.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Daftar Sekarang";
+  }
+});
