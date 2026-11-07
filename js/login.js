@@ -2,7 +2,7 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
   event.preventDefault();
   const errorBox = document.getElementById("loginError");
   const button = event.currentTarget.querySelector('button[type="submit"]');
-  const email = document.getElementById("username").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   errorBox.textContent = "";
   button.disabled = true;
