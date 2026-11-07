@@ -1,12 +1,30 @@
-document.getElementById("loginForm").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const u = document.getElementById("username").value.trim(),
-    p = document.getElementById("password").value;
-  if (u === "admin" && p === "admin123") {
-    localStorage.setItem(STORAGE_KEYS.session, "admin");
+document.getElementById("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const errorBox = document.getElementById("loginError");
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const email = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  errorBox.textContent = "";
+  button.disabled = true;
+  button.textContent = "Memproses...";
+
+  try {
+    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    if (!data.session) throw new Error("Sesi login tidak berhasil dibuat.");
     location.href = "dashboard.html";
-  } else
-    document.getElementById("loginError").textContent =
-      "Username atau password salah.";
+  } catch (error) {
+    errorBox.textContent = error.message || "Email atau password salah.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Masuk";
+  }
 });
-if (isLoggedIn()) location.href = "dashboard.html";
+
+(async () => {
+  const { data } = await window.supabaseClient.auth.getSession();
+  if (data.session) location.replace("dashboard.html");
+})();
