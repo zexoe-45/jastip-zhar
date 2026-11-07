@@ -23,30 +23,26 @@
         </div>
       </div>
       <h1>Masuk ke Dashboard</h1>
-      <p class="muted">Gunakan akun demo untuk mengakses sistem.</p>
+      <p class="muted">Masuk menggunakan email dan password akun Anda.</p>
       <form id="loginForm" class="form-stack">
         <label
-          >Username<input
-            id="username"
-            required
-            autocomplete="username"
-            value="admin"
-        /></label>
+          >Email<input id="username" type="email" required autocomplete="email" placeholder="nama@email.com" /></label>
         <label
           >Password<input
             id="password"
             type="password"
             required
             autocomplete="current-password"
-            value="admin123"
+            
         /></label>
         <button class="btn btn-primary btn-block" type="submit">Masuk</button>
       </form>
-      <div class="demo-hint">
-        <b>Akun demo</b><br />Username: admin<br />Password: admin123
-      </div>
+      <div class="demo-hint">Belum punya akun? <a href="signup.html" style="color:#06b6d4;font-weight:600;">Daftar di sini</a></div>
       <div id="loginError" class="error-text"></div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/data-demo.js"></script>
     <script src="js/utils.js"></script>
