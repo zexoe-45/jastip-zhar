@@ -18,10 +18,14 @@ document.getElementById("signupForm").addEventListener("submit", async (event) =
   }
 
   try {
+    const redirectTo = new URL("index.html", window.location.origin).toString();
     const { data, error } = await window.supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: redirectTo,
+      },
     });
     if (error) throw error;
 
