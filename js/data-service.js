@@ -147,11 +147,16 @@
   }
 
   window.queueSupabaseSync = function () {
-    if (!ready || hydrating) return;
+    if (!ready || hydrating) return syncing;
     syncing = syncing.then(syncSnapshot).catch(error => {
       console.error("Jastara sync error:", error);
       window.dispatchEvent(new CustomEvent("jastara:sync-error", { detail: error }));
+      throw error;
     });
+    return syncing;
+  };
+  window.flushSupabaseSync = function () {
+    return window.queueSupabaseSync();
   };
 
   window.initializeJastaraData = async function () {
@@ -166,21 +171,26 @@
         batches: Store.get(keys.batches, []),
         orders: Store.get(keys.orders, [])
       };
-      const remoteEmpty = !remote.customers.length && !remote.batches.length && !remote.orders.length;
-      if (remoteEmpty) {
-        Store.set(keys.customers, local.customers);
-        Store.set(keys.batches, local.batches);
-        Store.set(keys.orders, local.orders);
-      } else {
-        Store.set(keys.customers, remote.customers);
-        Store.set(keys.batches, remote.batches);
-        Store.set(keys.orders, remote.orders);
-      }
+      // Merge per table so that an existing customer row cannot cause still-local
+      // batches or orders to be discarded when those remote tables are empty.
+      const mergeById = (remoteRows, localRows) => {
+        const merged = new Map((localRows || []).map(row => [String(row.id), row]));
+        (remoteRows || []).forEach(row => merged.set(String(row.id), row));
+        return [...merged.values()];
+      };
+      const merged = {
+        customers: mergeById(remote.customers, local.customers),
+        batches: mergeById(remote.batches, local.batches),
+        orders: mergeById(remote.orders, local.orders)
+      };
+      Store.set(keys.customers, merged.customers);
+      Store.set(keys.batches, merged.batches);
+      Store.set(keys.orders, merged.orders);
       ready = true;
       hydrating = false;
-      if (remoteEmpty && (local.customers.length || local.batches.length || local.orders.length)) {
+      if (merged.customers.length || merged.batches.length || merged.orders.length) {
         await syncSnapshot();
-        console.info("Jastara: data lokal berhasil dikirim ke Supabase.");
+        console.info("Jastara: data lokal dan Supabase berhasil diselaraskan.");
       }
       return true;
     } catch (error) {
