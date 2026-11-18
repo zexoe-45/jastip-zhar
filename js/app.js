@@ -3,50 +3,8 @@ const customerData = () => Store.get(STORAGE_KEYS.customers, []);
 const batchData = () => Store.get(STORAGE_KEYS.batches, []);
 const orderData = () => Store.get(STORAGE_KEYS.orders, []);
 
-/* ── Theme (dark / light) ──────────────────────────────────────────── */
-function initTheme() {
-  const saved = localStorage.getItem("jastip_theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  if (saved === "dark" || (!saved && prefersDark)) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-}
-function toggleTheme() {
-  const isNowDark = document.documentElement.classList.toggle("dark");
-  localStorage.setItem("jastip_theme", isNowDark ? "dark" : "light");
-  
-  // Update theme toggle icon
-  const icon = document.querySelector('.theme-toggle');
-  if (icon) {
-    icon.textContent = isNowDark ? "☀" : "☾";
-  }
-  
-  // Re-render charts without resetting filters
-  const currentPage = location.hash.slice(1) || "dashboard";
-  if (currentPage === "dashboard") {
-    // Re-render only the charts, not the entire dashboard
-    const orders = orderData();
-    const filterMonth = getParam("month") || "";
-    const filterYear = getParam("year") || "";
-    let filteredOrders = [...orders];
-    if (filterMonth && filterYear) {
-      filteredOrders = filterByMonth(filteredOrders, 'orderDate', filterMonth, filterYear);
-    } else if (filterMonth && !filterYear) {
-      filteredOrders = filterByMonth(filteredOrders, 'orderDate', filterMonth);
-    } else if (filterYear && !filterMonth) {
-      filteredOrders = filterByYear(filteredOrders, 'orderDate', filterYear);
-    }
-    
-    // Wait for theme transition to complete and DOM to stabilize
-    setTimeout(() => {
-      renderDashboardCharts(filteredOrders);
-    }, 0);
-  }
-}
-initTheme();
-
+/* Tema tetap terang untuk identitas Jastara. */
+document.documentElement.classList.remove('dark');
 // Pagination state
 let paginationState = {
   customer: { page: 1, perPage: 10 },
@@ -54,19 +12,18 @@ let paginationState = {
   dashboard: { page: 1, perPage: 10 }
 };
 function shell(title, content) {
-  const isDark = document.documentElement.classList.contains("dark");
-  const themeIcon = isDark ? "☀" : "☾";
-  const themeLabel = isDark ? "Ganti ke Light Mode" : "Ganti ke Dark Mode";
+  const userEmail = window.currentSupabaseUser?.email || "Pengguna";
   return `<div class="layout"><aside class="sidebar" id="sidebar">
- <div class="brand"><div class="brand-mark">J</div><div><b>Jastip<span>PYTHA</span></b><small>Management System</small></div></div>
+ <div class="brand"><div class="brand-symbol">✦</div><div><b>Jastara</b><small>Jastip Management</small></div></div>
  <div class="nav-title">Menu Utama</div>
  <a class="nav-link ${page === "dashboard" ? "active" : ""}" href="dashboard.html" onclick="closeSidebar()">▦ <span>Dashboard</span></a>
  <a class="nav-link ${page === "customer" ? "active" : ""}" href="customer.html" onclick="closeSidebar()">♙ <span>Customer</span></a>
  <a class="nav-link ${page === "batch" ? "active" : ""}" href="batch.html" onclick="closeSidebar()">◫ <span>Batch Jastip</span></a>
  <a class="nav-link ${["order", "order-form", "order-detail"].includes(page) ? "active" : ""}" href="order.html" onclick="closeSidebar()">☷ <span>Order</span></a>
+ <a class="nav-link ${page === "reports" ? "active" : ""}" href="reports.html" onclick="closeSidebar()">▤ <span>Laporan</span></a>
  <div class="nav-title">Sistem</div><a class="nav-link ${page === "settings" ? "active" : ""}" href="settings.html" onclick="closeSidebar()">⚙ <span>Pengaturan</span></a>
  <div class="sidebar-footer"><button class="btn btn-secondary btn-block" onclick="logout()">Keluar</button></div>
- </aside><div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div><main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleSidebar()">☰</button><h2>${title}</h2><div class="topbar-right"><button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="${themeLabel}" aria-label="${themeLabel}">${themeIcon}</button><div class="user-box">Admin · Demo</div></div></header><section class="content">${content}</section></main></div>`;
+ </aside><div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div><main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleSidebar()">☰</button><h2>${title}</h2><div class="topbar-right"><div class="user-box">${esc(userEmail)}</div></div></header><section class="content">${content}</section></main></div>`;
 }
 function logout() {
   supabaseLogout();
@@ -102,6 +59,7 @@ function init() {
   if (page === "order-form") renderOrderForm();
   if (page === "order-detail") renderOrderDetail();
   if (page === "settings") renderSettings();
+  if (page === "reports") renderReports();
 }
 function renderDashboard() {
   const orders = orderData(),
@@ -2201,10 +2159,9 @@ function savePayment(e, id) {
   setTimeout(renderOrderDetail, 300);
 }
 function renderSettings() {
-  const content = `<div class="page-head"><div><h1>Pengaturan</h1><p>Pengaturan demo dan data aplikasi.</p></div></div>
- <div class="card settings-list"><div><h3>Reset Demo Data</h3><p class="muted">Menghapus data aplikasi lalu mengembalikan customer, batch, dan order ke kondisi awal demo.</p><div class="danger-box"><b>Perhatian</b><p>Data yang kamu buat sendiri akan hilang dari browser ini.</p><button class="btn btn-danger" onclick="resetDemo()">Reset Demo Data</button></div></div>
- <div><h3>Informasi LocalStorage</h3><p class="muted">Key aplikasi: <code>jastip_customers</code>, <code>jastip_batches</code>, <code>jastip_orders</code>, <code>jastip_settings</code>, dan sesi demo.</p></div>
- <div><h3>Login Demo</h3><p class="muted">Username: <b>admin</b> · Password: <b>admin123</b>. Ini hanya demo login, bukan authentication production.</p></div></div>`;
+  const content = `<div class="page-head"><div><h1>Pengaturan</h1><p>Kelola preferensi dan keamanan akun Jastara.</p></div></div>
+  <div class="card settings-list"><div><h3>Akun Terhubung</h3><p class="muted">Akun Anda terhubung melalui Supabase Authentication.</p><p><b>Email:</b> ${esc(window.currentSupabaseUser?.email || "-")}</p></div>
+  <div><h3>Keamanan</h3><p class="muted">Jangan bagikan kata sandi atau tautan pemulihan akun kepada orang lain.</p></div></div>`;
   document.getElementById("app").innerHTML = shell("Pengaturan", content);
 }
 function resetDemo() {
