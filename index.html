@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>if(localStorage.getItem("jastip_theme")==="dark"||(!localStorage.getItem("jastip_theme")&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark");</script>
     <script>
       // Supabase recovery links may initially return to the configured Site URL.
       // Forward recovery callbacks before the normal login redirect can run.
@@ -11,7 +10,7 @@
         window.location.replace("reset-password.html" + window.location.hash);
       }
     </script>
-    <title>Login - JastipPYTHA</title>
+    <title>Login - Jastara</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -20,7 +19,7 @@
   <body class="login-page">
     <div class="login-card">
       <div class="brand brand-center">
-        <div class="brand-mark">J</div>
+        <span class="brand-symbol">✦</span>
         <div><b>Jastip<span>PYTHA</span></b><small>Management System</small></div>
       </div>
       <h1>Masuk ke Dashboard</h1>
