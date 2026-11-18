@@ -18,7 +18,7 @@
     status: ({
       "Pesanan Masuk": "pending", "Diproses": "processed",
       "Barang Dibeli": "purchased", "Dalam Perjalanan": "shipping",
-      "Barang Sampai": "shipping", "Selesai": "completed",
+      "Barang Sampai": "arrived", "Selesai": "completed",
       "Dibatalkan": "cancelled"
     })[o.orderStatus] || "pending",
     payment_status: Number(o.paidAmount || 0) <= 0 ? "unpaid" :
@@ -38,7 +38,7 @@
     return ({ upcoming: "Upcoming", active: "Open", completed: "Completed", cancelled: "Closed" })[status] || "Upcoming";
   }
   function orderStatusFromDb(status) {
-    return ({ pending: "Pesanan Masuk", processed: "Diproses", purchased: "Barang Dibeli", shipping: "Dalam Perjalanan", completed: "Selesai", cancelled: "Dibatalkan" })[status] || "Pesanan Masuk";
+    return ({ pending: "Pesanan Masuk", processed: "Diproses", purchased: "Barang Dibeli", shipping: "Dalam Perjalanan", arrived: "Barang Sampai", completed: "Selesai", cancelled: "Dibatalkan" })[status] || "Pesanan Masuk";
   }
 
   async function checked(query) {
