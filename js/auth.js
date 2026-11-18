@@ -6,6 +6,10 @@ async function requireSupabaseLogin() {
     return false;
   }
   window.currentSupabaseUser = data.session.user;
+  if (typeof window.initializeJastaraData === "function") {
+    const loaded = await window.initializeJastaraData();
+    if (!loaded) return false;
+  }
   return true;
 }
 
