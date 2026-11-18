@@ -1,0 +1,13 @@
+function renderFinance(){
+ const orders=orderData();
+ const total=orders.reduce((s,o)=>s+orderTotal(o),0);
+ const paid=orders.reduce((s,o)=>s+Number(o.paidAmount||0),0);
+ const fee=orders.reduce((s,o)=>s+Number(o.fee||0),0);
+ const remaining=Math.max(0,total-paid);
+ const rows=[...orders].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||""));
+ const content=`<div class="page-head"><div><span class="eyebrow">RINGKASAN BISNIS</span><h1>Keuangan</h1><p>Pantau transaksi, pembayaran masuk, dan estimasi fee jastip dalam satu tempat.</p></div><a class="btn btn-primary" href="reports.html">Lihat Laporan</a></div>
+ <div class="finance-hero"><div><span>Nilai seluruh transaksi</span><h2>${money(total)}</h2><p>Rekap dari seluruh order yang tercatat</p></div><div class="finance-hero-icon">◈</div></div>
+ <div class="finance-cards"><article class="finance-card"><span class="finance-icon green">↗</span><small>Pembayaran masuk</small><strong>${money(paid)}</strong><p>Akumulasi pembayaran pelanggan</p></article><article class="finance-card"><span class="finance-icon amber">◷</span><small>Sisa pembayaran</small><strong>${money(remaining)}</strong><p>Nilai transaksi dikurangi pembayaran</p></article><article class="finance-card"><span class="finance-icon violet">✦</span><small>Estimasi fee jastip</small><strong>${money(fee)}</strong><p>Total fee dari order yang tercatat</p></article></div>
+ <div class="card table-card"><div class="card-head"><div><h3>Riwayat transaksi</h3><p class="muted">Daftar transaksi terbaru berdasarkan tanggal order.</p></div><span class="finance-count">${orders.length} order</span></div><div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Nomor order</th><th>Customer</th><th>Total</th><th>Dibayar</th><th>Sisa</th><th>Status</th></tr></thead><tbody>${rows.length?rows.map(o=>`<tr><td>${dateId(o.orderDate)}</td><td><a href="order-detail.html?id=${encodeURIComponent(o.id)}"><b>${esc(o.id)}</b></a></td><td>${esc(customerName(o.customerId))}</td><td><b>${money(orderTotal(o))}</b></td><td>${money(o.paidAmount||0)}</td><td>${money(Math.max(0,orderTotal(o)-Number(o.paidAmount||0)))}</td><td>${badge(paymentStatus(o))}</td></tr>`).join(""):`<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">💳</div><h3>Belum ada transaksi</h3><p>Transaksi akan muncul setelah kamu membuat order.</p><a class="btn btn-primary" href="order-form.html">Buat order pertama</a></div></td></tr>`}</tbody></table></div></div>`;
+ document.getElementById("app").innerHTML=shell("Keuangan",content);
+}
