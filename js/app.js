@@ -23,6 +23,7 @@ function shell(title, content) {
  <a class="nav-link ${page === "reports" ? "active" : ""}" href="reports.html" onclick="closeSidebar()">▤ <span>Laporan</span></a>
  <a class="nav-link ${page === "finance" ? "active" : ""}" href="finance.html" onclick="closeSidebar()">◈ <span>Keuangan</span></a>
  <a class="nav-link ${page === "guide" ? "active" : ""}" href="guide.html" onclick="closeSidebar()">✧ <span>Panduan</span></a>
+ ${["admin", "super_admin"].includes(window.currentUserRole) ? `<div class="nav-title">Administrasi</div><a class="nav-link ${page === "roles" ? "active" : ""}" href="roles.html" onclick="closeSidebar()">♙ <span>Manajemen Role</span></a>` : ""}
  <div class="nav-title">Sistem</div><a class="nav-link ${page === "settings" ? "active" : ""}" href="settings.html" onclick="closeSidebar()">⚙ <span>Pengaturan</span></a>
  <div class="sidebar-footer"><button class="btn btn-secondary btn-block" onclick="logout()">Keluar</button></div>
  </aside><div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div><main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleSidebar()">☰</button><h2>${title}</h2><div class="topbar-right"><div class="user-box">${esc(userEmail)}</div></div></header><section class="content">${content}</section></main></div>`;
@@ -64,6 +65,7 @@ function init() {
   if (page === "reports") renderReports();
   if (page === "finance") renderFinance();
   if (page === "guide") renderGuide();
+  if (page === "roles") renderRoleManagement();
 }
 function renderDashboard() {
   const orders = orderData(),
@@ -2187,3 +2189,67 @@ function resetDemo() {
 requireSupabaseLogin().then((authenticated) => {
   if (authenticated) init();
 });
+
+async function renderRoleManagement() {
+  const appRoot = document.getElementById("app");
+  const actorRole = window.currentUserRole;
+  if (!["admin", "super_admin"].includes(actorRole)) {
+    location.replace("dashboard.html");
+    return;
+  }
+  const canManageSuperAdmin = actorRole === "super_admin";
+  const content = `
+    <div class="page-head"><div><h1>Manajemen Role</h1><p>Atur hak akses akun yang terdaftar di Jastara.</p></div></div>
+    <div class="card" style="margin-bottom:18px;padding:18px;">
+      <b>Role Anda: ${canManageSuperAdmin ? "Super Admin" : "Admin"}</b>
+      <p class="muted" style="margin:6px 0 0;">${canManageSuperAdmin ? "Anda dapat mengelola seluruh role akun." : "Anda dapat mengelola role Pengguna dan Admin. Akun Super Admin dilindungi."}</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Daftar Akun</h3><button class="btn btn-secondary btn-sm" onclick="renderRoleManagement()">Muat Ulang</button></div>
+      <div id="roleNotice" class="muted" style="padding:16px;">Memuat daftar akun...</div>
+      <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Terdaftar</th><th>Aksi</th></tr></thead><tbody id="roleTableBody"></tbody></table></div>
+    </div>`;
+  appRoot.innerHTML = shell("Manajemen Role", content);
+  const notice = document.getElementById("roleNotice");
+  const tbody = document.getElementById("roleTableBody");
+  const { data, error } = await window.supabaseClient.rpc("list_role_profiles");
+  if (error) { notice.textContent = "Gagal memuat akun: " + error.message; return; }
+  notice.textContent = `Total akun: ${data.length}`;
+  const labels = { super_admin: "Super Admin", admin: "Admin", user: "Pengguna" };
+  tbody.innerHTML = data.map(profile => {
+    const isSelf = profile.id === window.currentSupabaseUser.id;
+    const protectedTarget = profile.role === "super_admin" && !canManageSuperAdmin;
+    const options = (canManageSuperAdmin ? ["user","admin","super_admin"] : ["user","admin"])
+      .map(role => `<option value="${role}" ${profile.role === role ? "selected" : ""}>${labels[role]}</option>`).join("");
+    const disabled = isSelf || protectedTarget;
+    return `<tr>
+      <td><b>${esc(profile.full_name || "—")}</b>${isSelf ? ' <small>(Anda)</small>' : ""}</td>
+      <td>${esc(profile.email || "—")}</td>
+      <td>${badge(labels[profile.role] || profile.role)}</td>
+      <td>${profile.created_at ? new Date(profile.created_at).toLocaleDateString("id-ID") : "—"}</td>
+      <td><div style="display:flex;gap:8px;align-items:center;min-width:190px;">
+        <select id="role-${profile.id}" aria-label="Role untuk ${esc(profile.email || "akun")}" ${disabled ? "disabled" : ""}>${options}</select>
+        <button class="btn btn-primary btn-sm" onclick="saveManagedRole('${profile.id}','${profile.role}')" ${disabled ? "disabled" : ""}>Simpan</button>
+      </div></td>
+    </tr>`;
+  }).join("") || '<tr><td colspan="5">Belum ada akun.</td></tr>';
+}
+async function saveManagedRole(userId, currentRole) {
+  const select = document.getElementById("role-" + userId);
+  if (!select || select.value === currentRole) return;
+  const names = { user: "Pengguna", admin: "Admin", super_admin: "Super Admin" };
+  if (!confirm(`Ubah role akun ini menjadi ${names[select.value]}?`)) { select.value = currentRole; return; }
+  const button = select.parentElement.querySelector("button");
+  button.disabled = true;
+  const { error } = await window.supabaseClient.rpc("set_profile_role", {
+    target_user_id: userId, new_role: select.value
+  });
+  if (error) {
+    alert("Role gagal diubah: " + error.message);
+    select.value = currentRole;
+    button.disabled = false;
+    return;
+  }
+  alert("Role akun berhasil diperbarui.");
+  renderRoleManagement();
+}
