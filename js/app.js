@@ -21,6 +21,8 @@ function shell(title, content) {
  <a class="nav-link ${page === "batch" ? "active" : ""}" href="batch.html" onclick="closeSidebar()">◫ <span>Batch Jastip</span></a>
  <a class="nav-link ${["order", "order-form", "order-detail"].includes(page) ? "active" : ""}" href="order.html" onclick="closeSidebar()">☷ <span>Order</span></a>
  <a class="nav-link ${page === "reports" ? "active" : ""}" href="reports.html" onclick="closeSidebar()">▤ <span>Laporan</span></a>
+ <a class="nav-link ${page === "finance" ? "active" : ""}" href="finance.html" onclick="closeSidebar()">◈ <span>Keuangan</span></a>
+ <a class="nav-link ${page === "guide" ? "active" : ""}" href="guide.html" onclick="closeSidebar()">✧ <span>Panduan</span></a>
  <div class="nav-title">Sistem</div><a class="nav-link ${page === "settings" ? "active" : ""}" href="settings.html" onclick="closeSidebar()">⚙ <span>Pengaturan</span></a>
  <div class="sidebar-footer"><button class="btn btn-secondary btn-block" onclick="logout()">Keluar</button></div>
  </aside><div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div><main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleSidebar()">☰</button><h2>${title}</h2><div class="topbar-right"><div class="user-box">${esc(userEmail)}</div></div></header><section class="content">${content}</section></main></div>`;
@@ -60,6 +62,8 @@ function init() {
   if (page === "order-detail") renderOrderDetail();
   if (page === "settings") renderSettings();
   if (page === "reports") renderReports();
+  if (page === "finance") renderFinance();
+  if (page === "guide") renderGuide();
 }
 function renderDashboard() {
   const orders = orderData(),
