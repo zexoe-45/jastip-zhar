@@ -1828,7 +1828,7 @@ function updateCalc() {
   if (qs("#shipShow")) qs("#shipShow").textContent = money(ship);
   if (qs("#total")) qs("#total").textContent = money(sub + fee + ship);
 }
-function saveOrder(e, id) {
+async function saveOrder(e, id) {
   e.preventDefault();
   const f = new FormData(e.target),
     items = readItems(),
@@ -1872,8 +1872,16 @@ function saveOrder(e, id) {
   if (id) arr[arr.findIndex((x) => x.id === id)] = base;
   else arr.push(base);
   Store.set(STORAGE_KEYS.orders, arr);
-  toast("Order berhasil disimpan");
-  location.href = `order-detail.html?id=${base.id}`;
+  try {
+    if (typeof window.flushSupabaseSync === "function") {
+      await window.flushSupabaseSync();
+    }
+    toast("Order berhasil disimpan");
+    location.href = `order-detail.html?id=${encodeURIComponent(base.id)}`;
+  } catch (error) {
+    console.error("Gagal menyinkronkan order:", error);
+    alert("Order tersimpan di browser, tetapi belum berhasil disinkronkan ke Supabase. Periksa koneksi lalu coba simpan kembali. Detail: " + error.message);
+  }
 }
 function renderOrderDetail() {
   const id = getParam("id"),
