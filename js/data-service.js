@@ -111,6 +111,27 @@
 
     const remoteOrders = await checked(db.from("orders").select("id,legacy_id"));
     const orderIds = new Map(remoteOrders.map(x => [x.legacy_id, x.id]));
+
+    // Keep payment records in sync with the app's cumulative paidAmount field.
+    const paymentRows = await checked(db.from("payments").select("order_id,amount,status"));
+    for (const o of orders) {
+      const orderId = orderIds.get(o.id);
+      if (!orderId) continue;
+      const alreadyRecorded = paymentRows
+        .filter(p => p.order_id === orderId && p.status === "success")
+        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const targetPaid = Number(o.paidAmount || 0);
+      const missingPayment = Math.round((targetPaid - alreadyRecorded) * 100) / 100;
+      if (missingPayment > 0) {
+        await checked(db.from("payments").upsert({
+          user_id: uid, order_id: orderId, amount: missingPayment,
+          payment_method: "Dicatat dari Jastara", status: "success",
+          legacy_id: `AUTO-${o.id}-${targetPaid}`,
+          notes: "Sinkronisasi pembayaran dari total pembayaran order"
+        }, { onConflict: "user_id,legacy_id" }));
+      }
+    }
+
     for (const o of orders) {
       const orderId = orderIds.get(o.id);
       if (!orderId) continue;
