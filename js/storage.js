@@ -22,6 +22,7 @@ const Store = {
   },
   set(key, value) {
     localStorage.setItem(scopedStorageKey(key), JSON.stringify(value));
+    if (typeof window.queueSupabaseSync === "function") window.queueSupabaseSync();
   },
   remove(key) {
     localStorage.removeItem(scopedStorageKey(key));
