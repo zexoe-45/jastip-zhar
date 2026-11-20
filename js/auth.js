@@ -15,7 +15,8 @@ async function requireSupabaseLogin() {
     return false;
   }
   window.currentUserProfile = profileData;
-  window.currentUserRole = profileData.role;
+  // Normalize the database role once so navigation and page guards use one value.
+  window.currentUserRole = String(profileData.role || "").trim().toLowerCase();
   if (typeof window.initializeJastaraData === "function") {
     const loaded = await window.initializeJastaraData();
     if (!loaded) return false;
