@@ -23,7 +23,7 @@ function shell(title, content) {
  <a class="nav-link ${page === "reports" ? "active" : ""}" href="reports.html" onclick="closeSidebar()">▤ <span>Laporan</span></a>
  <a class="nav-link ${page === "finance" ? "active" : ""}" href="finance.html" onclick="closeSidebar()">◈ <span>Keuangan</span></a>
  <a class="nav-link ${page === "guide" ? "active" : ""}" href="guide.html" onclick="closeSidebar()">✧ <span>Panduan</span></a>
- ${["admin", "super_admin"].includes(window.currentUserRole) ? `<div class="nav-title">Administrasi</div><a class="nav-link ${page === "roles" ? "active" : ""}" href="roles.html" onclick="closeSidebar()">♙ <span>Manajemen Role</span></a>` : ""}
+ ${["admin", "super_admin"].includes(String(window.currentUserRole || window.currentUserProfile?.role || "").trim().toLowerCase()) ? `<div class="nav-title">Administrasi</div><a class="nav-link ${page === "roles" ? "active" : ""}" href="roles.html" onclick="closeSidebar()">♙ <span>Manajemen Role</span></a>` : ""}
  <div class="nav-title">Sistem</div><a class="nav-link ${page === "settings" ? "active" : ""}" href="settings.html" onclick="closeSidebar()">⚙ <span>Pengaturan</span></a>
  <div class="sidebar-footer"><button class="btn btn-secondary btn-block" onclick="logout()">Keluar</button></div>
  </aside><div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div><main class="main"><header class="topbar"><button class="mobile-menu" onclick="toggleSidebar()">☰</button><h2>${title}</h2><div class="topbar-right"><div class="user-box">${esc(userEmail)}</div></div></header><section class="content">${content}</section></main></div>`;
@@ -2192,7 +2192,7 @@ requireSupabaseLogin().then((authenticated) => {
 
 async function renderRoleManagement() {
   const appRoot = document.getElementById("app");
-  const actorRole = window.currentUserRole;
+  const actorRole = String(window.currentUserRole || window.currentUserProfile?.role || "").trim().toLowerCase();
   if (!["admin", "super_admin"].includes(actorRole)) {
     location.replace("dashboard.html");
     return;
